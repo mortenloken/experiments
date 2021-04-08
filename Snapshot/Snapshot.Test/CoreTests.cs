@@ -16,9 +16,9 @@ namespace Snapshot.Test {
 				InitialData
 			);
 
-			Assert.Equal(InitialData, snapshot.Data);
+			Assert.Equal(InitialData, snapshot.Data.Value);
 			await snapshot.LoadAsync();
-			Assert.Equal(LoadedData, snapshot.Data);
+			Assert.Equal(LoadedData, snapshot.Data.Value);
 		}
 	}
 }

@@ -4,10 +4,14 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace Snapshot {
+	/// <summary>
+	/// A snapshot is a point-in-time representation of something loaded from some data factory.
+	/// </summary>
+	/// <typeparam name="TData">The type of the data to load.</typeparam>
 	[PublicAPI]
-	public interface ISnapshot<out TData> {
+	public interface ISnapshot<TData> {
 		SnapshotState State { get; }
-		TData Data { get; }
+		SnapshotData<TData> Data { get; }
 		Task LoadAsync();
 	}	
 
@@ -22,14 +26,14 @@ namespace Snapshot {
 			_semaphore = new SemaphoreSlim(1, 1);
 			
 			State = SnapshotState.Empty;
-			Data = initialData;
+			Data = new SnapshotData<TData>(initialData);
 		}
 		#endregion
 		
 		#region ISnapshot implementation
 		public SnapshotState State { get; private set; }
 
-		public TData Data { get; private set; }
+		public SnapshotData<TData> Data { get; private set; }
 
 		public async Task LoadAsync() {
 			//wait for the semaphore
@@ -41,7 +45,7 @@ namespace Snapshot {
 				State = SnapshotState.Loading;
 
 				//load data from the factor
-				Data = await _dataFactory();
+				Data = new SnapshotData<TData>(await _dataFactory());
 				State = SnapshotState.Loaded;
 			}
 			catch (Exception) {
