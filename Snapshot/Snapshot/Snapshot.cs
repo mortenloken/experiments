@@ -23,7 +23,7 @@ namespace Snapshot {
 		#region Constructor methods
 		public Snapshot(Func<Task<TData>> dataFactory, TData initialData) {
 			_dataFactory = dataFactory;
-			_semaphore = new SemaphoreSlim(1, 1);
+			_semaphore = new SemaphoreSlim(1);
 			
 			State = SnapshotState.Empty;
 			Data = new SnapshotData<TData>(initialData);
@@ -47,14 +47,19 @@ namespace Snapshot {
 				//load data from the factory
 				Data = new SnapshotData<TData>(await _dataFactory());
 				State = SnapshotState.Loaded;
-			}
-			catch {
-				State = SnapshotState.Failed;
-				throw;
-			}
-			finally {
+				
 				//release the semaphore
 				_semaphore.Release();
+			}
+			catch {
+				//set state
+				State = SnapshotState.Failed;
+				
+				//release the semaphore
+				_semaphore.Release();
+
+				//leak exception to caller
+				throw;
 			}
 		}
 		#endregion
