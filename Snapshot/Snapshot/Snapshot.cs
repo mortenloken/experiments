@@ -13,7 +13,7 @@ namespace Snapshot {
 		SnapshotState State { get; }
 		SnapshotData<TData> Data { get; }
 		Task LoadAsync();
-	}	
+	}
 
 	[PublicAPI]
 	public class Snapshot<TData> : ISnapshot<TData> {
@@ -44,7 +44,7 @@ namespace Snapshot {
 				if(State == SnapshotState.Loading) return;
 				State = SnapshotState.Loading;
 
-				//load data from the factor
+				//load data from the factory
 				Data = new SnapshotData<TData>(await _dataFactory());
 				State = SnapshotState.Loaded;
 			}
