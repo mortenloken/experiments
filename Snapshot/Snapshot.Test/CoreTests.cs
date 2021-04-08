@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Snapshot.Test.Mocks;
 using Xunit;
@@ -47,7 +48,7 @@ namespace Snapshot.Test {
 			);
 
 			Assert.Equal(SnapshotState.Empty, snapshot.State);
-			await snapshot.LoadAsync();
+			await Assert.ThrowsAsync<Exception>(() => snapshot.LoadAsync());
 			var person = snapshot.Data.Value;
 			Assert.Equal(SnapshotState.Failed, snapshot.State);
 			Assert.Equal("No such", person.FirstName);

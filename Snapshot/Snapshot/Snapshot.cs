@@ -50,6 +50,7 @@ namespace Snapshot {
 			}
 			catch (Exception) {
 				State = SnapshotState.Failed;
+				throw;
 			}
 			finally {
 				//release the semaphore
