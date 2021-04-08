@@ -48,7 +48,7 @@ namespace Snapshot {
 				Data = new SnapshotData<TData>(await _dataFactory());
 				State = SnapshotState.Loaded;
 			}
-			catch (Exception) {
+			catch {
 				State = SnapshotState.Failed;
 				throw;
 			}
