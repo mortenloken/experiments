@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 
@@ -13,11 +14,13 @@ namespace Snapshot {
 	[PublicAPI]
 	public class Snapshot<TData> : ISnapshot<TData> {
 		private readonly Func<Task<TData>> _dataFactory;
-		private object _lock = new object();
-
+		private readonly SemaphoreSlim _semaphore;
+		
 		#region Constructor methods
 		public Snapshot(Func<Task<TData>> dataFactory, TData initialData) {
 			_dataFactory = dataFactory;
+			_semaphore = new SemaphoreSlim(1, 1);
+			
 			State = SnapshotState.Empty;
 			Data = initialData;
 		}
@@ -29,19 +32,24 @@ namespace Snapshot {
 		public TData Data { get; private set; }
 
 		public async Task LoadAsync() {
-			//state management
-			lock (_lock) {
+			//wait for the semaphore
+			await _semaphore.WaitAsync();
+
+			try {
+				//state management
 				if(State == SnapshotState.Loading) return;
 				State = SnapshotState.Loading;
-			}
 
-			//load data from the factor
-			try {
+				//load data from the factor
 				Data = await _dataFactory();
 				State = SnapshotState.Loaded;
 			}
 			catch (Exception) {
 				State = SnapshotState.Failed;
+			}
+			finally {
+				//release the semaphore
+				_semaphore.Release();
 			}
 		}
 		#endregion
